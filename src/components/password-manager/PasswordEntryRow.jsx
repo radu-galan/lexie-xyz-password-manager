@@ -20,6 +20,8 @@ import StringParser from '@/lib/lexie-encryption/StringParser'
 export default function PasswordEntryRow({ id, entry, encryption, translations, onDelete, onUpdate }) {
     const [revealed, setRevealed] = useState(false)
     const [copied, setCopied] = useState(false)
+    const [editingPassword, setEditingPassword] = useState(false)
+    const [passwordDraft, setPasswordDraft] = useState('')
     const [editingVerification, setEditingVerification] = useState(false)
     const [verificationDraft, setVerificationDraft] = useState('')
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
@@ -45,6 +47,19 @@ export default function PasswordEntryRow({ id, entry, encryption, translations, 
         await navigator.clipboard.writeText(decrypt())
         setCopied(true)
         setTimeout(() => setCopied(false), 1500)
+    }
+
+    function startEditingPassword() {
+        setPasswordDraft(decrypt())
+        setRevealed(true)
+        setEditingPassword(true)
+    }
+
+    function savePassword() {
+        if (!passwordDraft) return
+        const encryptedPassword = new StringParser(encryption, passwordDraft).encryptString().join(' ')
+        onUpdate({ ...entry, password: encryptedPassword })
+        setEditingPassword(false)
     }
 
     function startEditingVerification() {
@@ -80,12 +95,28 @@ export default function PasswordEntryRow({ id, entry, encryption, translations, 
                 {entry.description && (
                     <Typography variant="body2" color="text.secondary" noWrap>{entry.description}</Typography>
                 )}
-                <Typography
-                    variant="body2"
-                    sx={{ fontFamily: 'var(--font-mono)', mt: 0.5, letterSpacing: revealed ? 'normal' : '0.15em', wordBreak: 'break-all' }}
-                >
-                    {revealed ? decrypt() : '••••••••'}
-                </Typography>
+                {editingPassword ? (
+                    <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', mt: 0.5 }}>
+                        <TextField
+                            label={translations.LANG_PASSWORD}
+                            value={passwordDraft}
+                            onChange={(e) => setPasswordDraft(e.target.value)}
+                            size="small"
+                            fullWidth
+                            autoFocus
+                        />
+                        <IconButton onClick={savePassword} size="small">
+                            <CheckIcon fontSize="small" />
+                        </IconButton>
+                    </Stack>
+                ) : (
+                    <Typography
+                        variant="body2"
+                        sx={{ fontFamily: 'var(--font-mono)', mt: 0.5, letterSpacing: revealed ? 'normal' : '0.15em', wordBreak: 'break-all' }}
+                    >
+                        {revealed ? decrypt() : '••••••••'}
+                    </Typography>
+                )}
 
                 {editingVerification ? (
                     <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', mt: 1 }}>
@@ -117,6 +148,11 @@ export default function PasswordEntryRow({ id, entry, encryption, translations, 
             <Tooltip title={revealed ? translations.LANG_HIDE : translations.LANG_REVEAL}>
                 <IconButton onClick={() => setRevealed((value) => !value)} size="small">
                     {revealed ? <VisibilityOffIcon fontSize="small" /> : <VisibilityIcon fontSize="small" />}
+                </IconButton>
+            </Tooltip>
+            <Tooltip title={translations.LANG_EDIT}>
+                <IconButton onClick={startEditingPassword} size="small">
+                    <EditIcon fontSize="small" />
                 </IconButton>
             </Tooltip>
             <Tooltip title={copied ? translations.LANG_COPIED : translations.LANG_COPY}>
