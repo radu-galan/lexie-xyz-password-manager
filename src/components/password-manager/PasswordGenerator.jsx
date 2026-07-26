@@ -18,15 +18,28 @@ import {
 
 export default function PasswordGenerator({ translations, onUsePassword }) {
     const [length, setLength] = useState(DEFAULT_PASSWORD_LENGTH)
+    const [lengthInput, setLengthInput] = useState(String(DEFAULT_PASSWORD_LENGTH))
     const [password, setPassword] = useState(() => generatePassword(DEFAULT_PASSWORD_LENGTH))
     const [copied, setCopied] = useState(false)
 
     function handleLengthChange(event) {
-        const value = parseInt(event.target.value, 10)
-        if (Number.isNaN(value)) return
-        const clamped = Math.min(Math.max(value, MIN_PASSWORD_LENGTH), MAX_PASSWORD_LENGTH)
+        const raw = event.target.value
+        setLengthInput(raw)
+        if (raw === '') return
+        const value = parseInt(raw, 10)
+        if (Number.isNaN(value) || value < MIN_PASSWORD_LENGTH || value > MAX_PASSWORD_LENGTH) return
+        setLength(value)
+        setPassword(generatePassword(value))
+    }
+
+    function handleLengthBlur() {
+        const value = parseInt(lengthInput, 10)
+        const clamped = Number.isNaN(value)
+            ? length
+            : Math.min(Math.max(value, MIN_PASSWORD_LENGTH), MAX_PASSWORD_LENGTH)
         setLength(clamped)
-        setPassword(generatePassword(clamped))
+        setLengthInput(String(clamped))
+        if (clamped !== length) setPassword(generatePassword(clamped))
     }
 
     function regenerate() {
@@ -80,8 +93,9 @@ export default function PasswordGenerator({ translations, onUsePassword }) {
                     <TextField
                         label={translations.LANG_PASSWORD_LENGTH}
                         type="number"
-                        value={length}
+                        value={lengthInput}
                         onChange={handleLengthChange}
+                        onBlur={handleLengthBlur}
                         slotProps={{ htmlInput: { min: MIN_PASSWORD_LENGTH, max: MAX_PASSWORD_LENGTH } }}
                         size="small"
                         sx={{ width: 140 }}
