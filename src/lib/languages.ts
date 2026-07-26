@@ -22,6 +22,10 @@ const languages: Record<string, Translations> = {
 
         LANG_TITLE: 'Titlu',
         LANG_DESCRIPTION: 'Descriere',
+        LANG_VERIFICATION_TEXT: 'Text de verificare',
+        LANG_VERIFICATION_TEXT_HINT:
+            'Opțional — scrie orice; va fi decriptat mai jos ca să confirmi că cheia ta funcționează',
+        LANG_ADD_VERIFICATION_TEXT: 'Adaugă text de verificare',
         LANG_NEW: 'Nou',
         LANG_COPY: 'Copiază',
         LANG_COPIED: 'Copiat!',
@@ -68,6 +72,10 @@ const languages: Record<string, Translations> = {
 
         LANG_TITLE: 'Title',
         LANG_DESCRIPTION: 'Description',
+        LANG_VERIFICATION_TEXT: 'Verification text',
+        LANG_VERIFICATION_TEXT_HINT:
+            "Optional — type anything; it'll be decrypted below so you can confirm your key works",
+        LANG_ADD_VERIFICATION_TEXT: 'Add verification text',
         LANG_NEW: 'New',
         LANG_COPY: 'Copy',
         LANG_COPIED: 'Copied!',

@@ -8,6 +8,7 @@ export interface PasswordEntry {
     title: string
     description: string
     password: string
+    verificationText?: string
 }
 
 const KEYS = {

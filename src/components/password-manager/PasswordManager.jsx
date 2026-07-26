@@ -94,6 +94,12 @@ export default function PasswordManager({ translations }) {
         storage.setEntries(next)
     }
 
+    function handleUpdate(index, nextEntry) {
+        const next = entries.map((entry, i) => (i === index ? nextEntry : entry))
+        setEntries(next)
+        storage.setEntries(next)
+    }
+
     function handleDragEnd(event) {
         const { active, over } = event
         if (!over || active.id === over.id) return
@@ -112,7 +118,12 @@ export default function PasswordManager({ translations }) {
         const reEncrypted = entries.map((entry) => {
             const plainPassword = new StringParser(encryption, '').decryptByteArray(entry.password.split(' '))
             const newPassword = new StringParser(newEncryption, plainPassword).encryptString().join(' ')
-            return { ...entry, password: newPassword }
+            const next = { ...entry, password: newPassword }
+            if (entry.verificationText) {
+                const plainVerification = new StringParser(encryption, '').decryptByteArray(entry.verificationText.split(' '))
+                next.verificationText = new StringParser(newEncryption, plainVerification).encryptString().join(' ')
+            }
+            return next
         })
         setEntries(reEncrypted)
         setEncryption(newEncryption)
@@ -193,6 +204,7 @@ export default function PasswordManager({ translations }) {
                                                 encryption={encryption}
                                                 translations={translations}
                                                 onDelete={() => handleDelete(entryIndex)}
+                                                onUpdate={(nextEntry) => handleUpdate(entryIndex, nextEntry)}
                                             />
                                         )
                                     })}

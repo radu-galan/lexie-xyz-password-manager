@@ -12,6 +12,7 @@ export default function AddPasswordForm({ encryption, translations, onAdd, prefi
     const [title, setTitle] = useState('')
     const [password, setPassword] = useState('')
     const [description, setDescription] = useState('')
+    const [verificationText, setVerificationText] = useState('')
     const [seenPrefillToken, setSeenPrefillToken] = useState(prefill?.token)
 
     if (prefill && prefill.token !== seenPrefillToken) {
@@ -23,10 +24,15 @@ export default function AddPasswordForm({ encryption, translations, onAdd, prefi
         event.preventDefault()
         if (!title || !password) return
         const encryptedPassword = new StringParser(encryption, password).encryptString().join(' ')
-        onAdd({ title, description, password: encryptedPassword })
+        const entry = { title, description, password: encryptedPassword }
+        if (verificationText) {
+            entry.verificationText = new StringParser(encryption, verificationText).encryptString().join(' ')
+        }
+        onAdd(entry)
         setTitle('')
         setPassword('')
         setDescription('')
+        setVerificationText('')
     }
 
     return (
@@ -37,6 +43,13 @@ export default function AddPasswordForm({ encryption, translations, onAdd, prefi
                     <TextField label={translations.LANG_TITLE} value={title} onChange={(e) => setTitle(e.target.value)} fullWidth required />
                     <TextField label={translations.LANG_PASSWORD} value={password} onChange={(e) => setPassword(e.target.value)} type="password" fullWidth required />
                     <TextField label={translations.LANG_DESCRIPTION} value={description} onChange={(e) => setDescription(e.target.value)} fullWidth />
+                    <TextField
+                        label={translations.LANG_VERIFICATION_TEXT}
+                        helperText={translations.LANG_VERIFICATION_TEXT_HINT}
+                        value={verificationText}
+                        onChange={(e) => setVerificationText(e.target.value)}
+                        fullWidth
+                    />
                     <Button type="submit" variant="contained" startIcon={<AddIcon />}>
                         {translations.LANG_ADD}
                     </Button>
