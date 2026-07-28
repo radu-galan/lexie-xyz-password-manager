@@ -49,7 +49,15 @@ npm run build:firefox   # Firefox only
 
 **Chrome**: `chrome://extensions` → enable **Developer mode** → **Load unpacked** → select `dist/chrome`.
 
-**Firefox**: `about:debugging#/runtime/this-firefox` → **Load Temporary Add-on** → select any file inside `dist/firefox` (e.g. `manifest.json`). Temporary add-ons are removed when Firefox restarts — reload after every relaunch.
+**Firefox (temporary, for testing)**: `about:debugging#/runtime/this-firefox` → **Load Temporary Add-on** → select any file inside `dist/firefox` (e.g. `manifest.json` — if the file picker's type filter hides it, switch it to "All Files"). Temporary add-ons are wiped when Firefox restarts — reload after every relaunch.
+
+**Firefox (persistent install)**: regular Firefox (Release/Beta) refuses to permanently install an unsigned add-on, even for personal/self-distribution use — it has to be signed by Mozilla first. One-time setup:
+
+1. Get API credentials from https://addons.mozilla.org/developers/addon/api/key/ (requires a free Firefox account).
+2. `npm run sign:firefox -- --api-key=<issuer> --api-secret=<secret>` — signs `dist/firefox` via Mozilla's unlisted (non-public) channel and downloads the signed `.xpi` into `web-ext-artifacts/`.
+3. Drag that `.xpi` into a Firefox window (or `about:addons` → gear icon → **Install Add-on From File**) to install it permanently.
+
+Re-run step 2 after every version bump — a signed `.xpi` is tied to the `version` in `manifest.json`/`package.json`.
 
 Always do a full build + fresh unpacked-load pass before considering a change done — dev mode's module graph can mask packaging-only issues.
 
