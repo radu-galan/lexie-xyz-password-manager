@@ -14,7 +14,7 @@
     "strict": true,
     "allowJs": true,
     "checkJs": false,
-    "types": ["chrome", "vite/client", "node"],
+    "types": ["chrome", "webextension-polyfill", "vite/client", "node"],
     "paths": {
       "@/*": ["./src/*"]
     }

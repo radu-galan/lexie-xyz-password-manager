@@ -1,6 +1,8 @@
 import { defineManifest } from '@crxjs/vite-plugin'
 import pkg from './package.json'
 
+const isFirefox = process.env.TARGET === 'firefox'
+
 export default defineManifest({
     manifest_version: 3,
     name: 'Lexie Password Manager',
@@ -20,9 +22,22 @@ export default defineManifest({
         48: 'icons/icon-48.png',
         128: 'icons/icon-128.png',
     },
-    background: {
-        service_worker: 'src/background/service-worker.ts',
-        type: 'module',
-    },
+    background: isFirefox
+        ? {
+              scripts: ['src/background/service-worker.ts'],
+              type: 'module',
+          }
+        : {
+              service_worker: 'src/background/service-worker.ts',
+              type: 'module',
+          },
     permissions: ['storage'],
+    ...(isFirefox && {
+        browser_specific_settings: {
+            gecko: {
+                id: 'lexie-password-manager@lexie.xyz',
+                strict_min_version: '109.0',
+            },
+        },
+    }),
 })

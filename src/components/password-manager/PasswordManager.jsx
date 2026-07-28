@@ -35,7 +35,7 @@ export default function PasswordManager({ translations }) {
     const [converting, setConverting] = useState(false)
     const [justConverted, setJustConverted] = useState(false)
 
-    // One-time hydration from chrome.storage.local on mount — this is exactly what an
+    // One-time hydration from browser.storage.local on mount — this is exactly what an
     // effect is for (subscribing to/reading an external system), not derived state.
     useEffect(() => {
         Promise.all([storage.getEncryptionKey(), storage.getEntries()]).then(([key, storedEntries]) => {

@@ -4,6 +4,8 @@ import { crx } from '@crxjs/vite-plugin'
 import path from 'node:path'
 import manifest from './manifest.config'
 
+const target = process.env.TARGET === 'firefox' ? 'firefox' : 'chrome'
+
 export default defineConfig({
     plugins: [react(), crx({ manifest })],
     resolve: {
@@ -12,6 +14,7 @@ export default defineConfig({
         },
     },
     build: {
+        outDir: `dist/${target}`,
         rollupOptions: {
             input: {
                 index: path.resolve(__dirname, 'index.html'),

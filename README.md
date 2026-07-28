@@ -1,6 +1,8 @@
-# Lexie Password Manager — Chrome extension
+# Lexie Password Manager — Chrome & Firefox extension
 
-A Chrome Manifest V3 extension version of the `www_lexie_xyz` password manager. Vault-only v1: view, search, generate, and copy passwords — no autofill into web pages.
+A Manifest V3 extension version of the `www_lexie_xyz` password manager, built from one shared `src/` and packaged separately for Chrome and Firefox. Vault-only v1: view, search, generate, and copy passwords — no autofill into web pages.
+
+Cross-browser storage/messaging goes through [`webextension-polyfill`](https://github.com/mozilla/webextension-polyfill) (`browser.*` instead of `chrome.*`), since Firefox's native `chrome.*` alias is callback-only while `browser.*` is Promise-based on both browsers via the polyfill.
 
 ## Security model — read this
 
@@ -39,10 +41,23 @@ src/
 
 ```sh
 npm install
-npm run dev     # HMR for the extension page; manifest/service-worker changes need a manual reload
-npm run build    # outputs dist/
+npm run dev             # HMR for the extension page (Chrome only); manifest/service-worker changes need a manual reload
+npm run build           # builds both targets: dist/chrome/ and dist/firefox/
+npm run build:chrome    # Chrome only
+npm run build:firefox   # Firefox only
 ```
 
-Load unpacked: `chrome://extensions` → enable **Developer mode** → **Load unpacked** → select `dist/`.
+**Chrome**: `chrome://extensions` → enable **Developer mode** → **Load unpacked** → select `dist/chrome`.
 
-Always do a full `npm run build` + fresh "Load unpacked" pass before considering a change done — dev mode's module graph can mask packaging-only issues.
+**Firefox**: `about:debugging#/runtime/this-firefox` → **Load Temporary Add-on** → select any file inside `dist/firefox` (e.g. `manifest.json`). Temporary add-ons are removed when Firefox restarts — reload after every relaunch.
+
+Always do a full build + fresh unpacked-load pass before considering a change done — dev mode's module graph can mask packaging-only issues.
+
+### Chrome vs. Firefox manifest differences
+
+Both targets share the same `manifest.config.ts`, gated on the `TARGET` env var the build scripts set:
+
+- **Background**: Chrome gets `background.service_worker`; Firefox gets `background.scripts` (an event page — Firefox's MV3 service worker support is still inconsistent).
+- **Identity**: Firefox requires `browser_specific_settings.gecko.id` for a stable extension ID; Chrome ignores this key.
+
+Everything else (icons, permissions, popup) is identical between the two.
