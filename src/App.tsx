@@ -4,6 +4,7 @@ import Box from '@mui/material/Box'
 import Theme from '@/lib/themes/ThemeArtLexie'
 import ExtensionHeader from '@/components/layout/ExtensionHeader'
 import PasswordManager from '@/components/password-manager/PasswordManager'
+import VaultTabGate from '@/components/layout/VaultTabGate'
 import { getTranslations, resolveLanguage } from '@/lib/languages'
 
 export default function App() {
@@ -15,7 +16,9 @@ export default function App() {
             <CssBaseline />
             <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
                 <ExtensionHeader translations={translations} />
-                <PasswordManager translations={translations} />
+                <VaultTabGate translations={translations}>
+                    <PasswordManager translations={translations} language={language} />
+                </VaultTabGate>
             </Box>
         </ThemeProvider>
     )

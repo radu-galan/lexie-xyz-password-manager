@@ -5,7 +5,7 @@ import path from 'node:path'
 import manifest from './manifest.config'
 
 export default defineConfig({
-    plugins: [react(), crx({ manifest })],
+    plugins: [react(), crx({ manifest, browser: process.env.VITE_BROWSER === 'firefox' ? 'firefox' : 'chrome' })],
     resolve: {
         alias: {
             '@': path.resolve(__dirname, 'src'),

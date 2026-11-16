@@ -6,7 +6,7 @@ import TextField from '@mui/material/TextField'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import AddIcon from '@mui/icons-material/Add'
-import StringParser from '@/lib/lexie-encryption/StringParser'
+import { encryptText } from '@/lib/vault/keyCheck'
 
 export default function AddPasswordForm({ encryption, translations, onAdd, prefill }) {
     const [title, setTitle] = useState('')
@@ -23,10 +23,10 @@ export default function AddPasswordForm({ encryption, translations, onAdd, prefi
     function handleSubmit(event) {
         event.preventDefault()
         if (!title || !password) return
-        const encryptedPassword = new StringParser(encryption, password).encryptString().join(' ')
+        const encryptedPassword = encryptText(encryption, password)
         const entry = { title, description, password: encryptedPassword }
         if (verificationText) {
-            entry.verificationText = new StringParser(encryption, verificationText).encryptString().join(' ')
+            entry.verificationText = encryptText(encryption, verificationText)
         }
         onAdd(entry)
         setTitle('')

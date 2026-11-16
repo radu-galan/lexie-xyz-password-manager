@@ -24,7 +24,8 @@ export default function JsonToolbar({ entries, translations, onReplace }) {
         link.href = url
         link.download = 'passwords.json'
         link.click()
-        URL.revokeObjectURL(url)
+        // Not right away: Firefox can still be starting the download.
+        setTimeout(() => URL.revokeObjectURL(url), 1000)
     }
 
     function handleFileChange(event) {
@@ -32,12 +33,17 @@ export default function JsonToolbar({ entries, translations, onReplace }) {
         if (!file) return
         const reader = new FileReader()
         reader.onload = () => {
+            let parsed
             try {
-                const parsed = JSON.parse(String(reader.result))
-                if (Array.isArray(parsed)) onReplace(parsed)
+                parsed = JSON.parse(String(reader.result))
             } catch {
-                // ignore malformed files — entries stay untouched
+                // Not JSON: entries stay untouched, but say so.
+                window.alert(translations.LANG_IMPORT_INVALID_FILE)
+                return
             }
+            // Outside the try: an error in onReplace isn't an invalid file.
+            if (Array.isArray(parsed)) onReplace(parsed)
+            else window.alert(translations.LANG_IMPORT_INVALID_FILE)
         }
         reader.readAsText(file)
         event.target.value = ''

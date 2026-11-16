@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import Paper from '@mui/material/Paper'
 import Box from '@mui/material/Box'
 import Stack from '@mui/material/Stack'
@@ -15,7 +15,7 @@ import EditIcon from '@mui/icons-material/Edit'
 import CheckIcon from '@mui/icons-material/Check'
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import StringParser from '@/lib/lexie-encryption/StringParser'
+import { decryptText, encryptText, keyOpensText } from '@/lib/vault/keyCheck'
 
 export default function PasswordEntryRow({ id, entry, encryption, translations, onDelete, onUpdate }) {
     const [revealed, setRevealed] = useState(false)
@@ -24,6 +24,9 @@ export default function PasswordEntryRow({ id, entry, encryption, translations, 
     const [passwordDraft, setPasswordDraft] = useState('')
     const [editingVerification, setEditingVerification] = useState(false)
     const [verificationDraft, setVerificationDraft] = useState('')
+    // The verification text being edited doesn't open with this key ("Open
+    // anyway" vault): an empty draft then keeps it instead of deleting it.
+    const [verificationUnreadable, setVerificationUnreadable] = useState(false)
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id })
 
     const style = {
@@ -35,13 +38,12 @@ export default function PasswordEntryRow({ id, entry, encryption, translations, 
     }
 
     function decrypt() {
-        return new StringParser(encryption, '').decryptByteArray(entry.password.split(' '))
+        return decryptText(encryption, entry.password)
     }
 
-    function decryptVerificationText() {
-        if (!entry.verificationText) return ''
-        return new StringParser(encryption, '').decryptByteArray(entry.verificationText.split(' '))
-    }
+    // Memoized: every row re-renders on each filter keystroke.
+    const verificationText = useMemo(() => decryptText(encryption, entry.verificationText), [encryption, entry.verificationText])
+    const revealedPassword = useMemo(() => (revealed ? decryptText(encryption, entry.password) : ''), [revealed, encryption, entry.password])
 
     async function handleCopy() {
         await navigator.clipboard.writeText(decrypt())
@@ -49,28 +51,41 @@ export default function PasswordEntryRow({ id, entry, encryption, translations, 
         setTimeout(() => setCopied(false), 1500)
     }
 
+    // Only a ciphertext this key opens is decrypted into a draft: in an "Open
+    // anyway" vault its garbage must not become the draft that Save
+    // re-encrypts over the only copy of the real password.
     function startEditingPassword() {
-        setPasswordDraft(decrypt())
+        setPasswordDraft(keyOpensText(encryption, entry.password) ? decrypt() : '')
         setRevealed(true)
         setEditingPassword(true)
     }
 
     function savePassword() {
-        if (!passwordDraft) return
-        const encryptedPassword = new StringParser(encryption, passwordDraft).encryptString().join(' ')
-        onUpdate({ ...entry, password: encryptedPassword })
+        // Empty draft: leave the stored password as it is (an unreadable one
+        // opens an empty editor, which must still be closable).
+        if (!passwordDraft) {
+            setEditingPassword(false)
+            return
+        }
+        onUpdate({ ...entry, password: encryptText(encryption, passwordDraft) })
         setEditingPassword(false)
     }
 
     function startEditingVerification() {
-        setVerificationDraft(entry.verificationText ? decryptVerificationText() : '')
+        const readable = !entry.verificationText || keyOpensText(encryption, entry.verificationText)
+        setVerificationDraft(entry.verificationText && readable ? verificationText : '')
+        setVerificationUnreadable(!readable)
         setEditingVerification(true)
     }
 
     function saveVerification() {
+        if (!verificationDraft && verificationUnreadable) {
+            setEditingVerification(false)
+            return
+        }
         const next = { ...entry }
         if (verificationDraft) {
-            next.verificationText = new StringParser(encryption, verificationDraft).encryptString().join(' ')
+            next.verificationText = encryptText(encryption, verificationDraft)
         } else {
             delete next.verificationText
         }
@@ -114,7 +129,7 @@ export default function PasswordEntryRow({ id, entry, encryption, translations, 
                         variant="body2"
                         sx={{ fontFamily: 'var(--font-mono)', mt: 0.5, letterSpacing: revealed ? 'normal' : '0.15em', wordBreak: 'break-all' }}
                     >
-                        {revealed ? decrypt() : '••••••••'}
+                        {revealed ? revealedPassword : '••••••••'}
                     </Typography>
                 )}
 
@@ -136,7 +151,7 @@ export default function PasswordEntryRow({ id, entry, encryption, translations, 
                     <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', mt: 0.5 }}>
                         <Typography variant="caption" color="text.secondary" sx={{ wordBreak: 'break-all' }}>
                             {entry.verificationText
-                                ? `${translations.LANG_VERIFICATION_TEXT}: ${decryptVerificationText()}`
+                                ? `${translations.LANG_VERIFICATION_TEXT}: ${verificationText}`
                                 : translations.LANG_ADD_VERIFICATION_TEXT}
                         </Typography>
                         <IconButton onClick={startEditingVerification} size="small">

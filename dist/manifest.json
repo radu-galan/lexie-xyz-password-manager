@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Lexie Password Manager",
-  "description": "A private, client-side password vault. Your keys and passwords never leave your browser.",
+  "description": "A private password vault, encrypted in your browser. Optionally save it, still encrypted, to your lexie.xyz account.",
   "version": "0.1.0",
   "action": {
     "default_icon": {
@@ -23,5 +23,8 @@
   },
   "permissions": [
     "storage"
+  ],
+  "host_permissions": [
+    "https://apiwww.lexie.xyz/*"
   ]
 }

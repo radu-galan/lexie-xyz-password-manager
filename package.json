@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:firefox": "VITE_BROWSER=firefox vite build --outDir dist-firefox",
     "lint": "eslint ."
   },
   "dependencies": {

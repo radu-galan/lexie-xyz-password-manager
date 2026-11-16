@@ -19,9 +19,13 @@ export default class StringParser extends Parser {
         return this.lexieEncryption.encryptObject(bin)
     }
 
+    // encryptString encrypts the UTF-8 bytes (TextEncoder), so decode them as
+    // UTF-8: one char per byte showed and re-encrypted (Convert) any
+    // non-ASCII character (ă, î, ș, ț, emoji) as garbage.
     decryptByteArray(byteArray: string[]): string {
-        const bytes = this.lexieEncryption.decryptObject(byteArray)
-        return bytes.map((item) => String.fromCharCode(parseInt(item, 2))).join('')
+        const bits = this.lexieEncryption.decryptObject(byteArray)
+        const bytes = Uint8Array.from(bits, (item) => parseInt(item, 2))
+        return new TextDecoder().decode(bytes)
     }
 
     matchesRegexp(byteArray: string[], regexp: RegExp = /[A-Z0-9a-z\s]/g): RegExpMatchArray | false {
